@@ -1,0 +1,13 @@
+Projects:
+    [x] Build Gin Framework
+    [x] Install GORM package
+    [] Build DB connection
+    [] Implement modules
+    [] Add redis cache
+    [] dockerize
+    [] create makefile
+    [] write unittests
+
+Modules:
+    [] Resume Modules
+    [] Salary Calculations Modules
