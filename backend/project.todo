@@ -4,10 +4,12 @@ Projects:
     [] Build DB connection
     [] Implement modules
     [] Add redis cache
+    [] Create migration and Seed data
     [] dockerize
     [] create makefile
     [] write unittests
 
 Modules:
+    [] Build clock in & clock out module
     [] Resume Modules
     [] Salary Calculations Modules
