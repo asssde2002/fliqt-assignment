@@ -8,4 +8,8 @@
 
 `go get gorm.io/gorm@v1.25.12`
 
+`go get gorm.io/driver/mysql`
+
 `go get github.com/gin-contrib/cors@v1.7.3`
+
+`got get github.com/joho/godotenv`
