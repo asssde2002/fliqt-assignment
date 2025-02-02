@@ -15,3 +15,8 @@
 `got get github.com/joho/godotenv`
 
 `go get github.com/githubnemo/CompileDaemon@latest`
+
+
+
+* Run server with hot reload
+`CompileDaemon -build="go build -o app ./cmd/server" -command="./app"`
