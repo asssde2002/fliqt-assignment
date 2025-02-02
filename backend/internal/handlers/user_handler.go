@@ -28,7 +28,6 @@ func SignUp(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "user created successfully",
-		"user":    newUser,
 	})
 }
 
@@ -45,7 +44,11 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, gin.H{
+		"id":        user.ID,
+		"username":  user.Username,
+		"createdAt": user.CreatedAt,
+	})
 }
 
 func fetchUser(id int) (*models.User, error) {

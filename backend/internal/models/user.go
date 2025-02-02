@@ -11,7 +11,7 @@ type User struct {
 	ID        int64     `json:"id" gorm:"primaryKey;autoIncrement"`
 	Username  string    `json:"username" binding:"required" gorm:"notNull;uniqueIndex;size:255"`
 	Password  string    `json:"password" binding:"required" gorm:"notNull"`
-	CreatedAt time.Time `gorm:"notNull"`
+	CreatedAt time.Time `json:"createdAt" gorm:"notNull"`
 }
 
 func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
