@@ -13,3 +13,5 @@
 `go get github.com/gin-contrib/cors@v1.7.3`
 
 `got get github.com/joho/godotenv`
+
+`go get github.com/githubnemo/CompileDaemon@latest`
