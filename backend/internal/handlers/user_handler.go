@@ -54,6 +54,11 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
+	if user_id, exists := c.Get("user_id"); !exists || user_id != id {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
 	user, err := services.FetchUserByID(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
