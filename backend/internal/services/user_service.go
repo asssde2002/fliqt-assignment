@@ -8,30 +8,54 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func CreateUser(newUser *models.User) error {
-	var existingUser models.User
-	if err := db.DB.Where("username = ?", newUser.Username).First(&existingUser).Error; err == nil {
+func CreateUser(authInput *models.AuthInput) error {
+	if _, err := FetchUserByUsername(authInput.Username); err == nil {
 		return fmt.Errorf("username has already existed")
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(authInput.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return fmt.Errorf("failed to create hash password: %v", err)
 	}
-	newUser.Password = string(hashedPassword)
 
-	if err := db.DB.Create(newUser).Error; err != nil {
+	newUser := models.User{
+		Username: authInput.Username,
+		Password: string(hashedPassword),
+	}
+	if err := db.DB.Create(&newUser).Error; err != nil {
 		return fmt.Errorf("failed to create user: %v", err)
 	}
 
 	return nil
 }
 
-func FetchUser(id int64) (*models.User, error) {
+func FetchUserByID(id int64) (*models.User, error) {
 	var user models.User
 	err := db.DB.Where("id = ?", id).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func FetchUserByUsername(username string) (*models.User, error) {
+	var user models.User
+	err := db.DB.Where("username = ?", username).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func VerifyUser(authInput *models.AuthInput) (*models.User, error) {
+	existingUser, err := FetchUserByUsername(authInput.Username)
+	if err != nil {
+		return nil, fmt.Errorf("username does not exist")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(existingUser.Password), []byte(authInput.Password)); err != nil {
+		return nil, fmt.Errorf("failed to get hash password: %v", err)
+	}
+
+	return existingUser, nil
 }

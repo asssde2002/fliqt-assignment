@@ -10,21 +10,34 @@ import (
 )
 
 func Login(c *gin.Context) {
-	var newUser models.User
-	if err := c.ShouldBindBodyWithJSON(&newUser); err != nil {
+	var authInput models.AuthInput
+	if err := c.ShouldBindBodyWithJSON(&authInput); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	verifiedUser, err := services.VerifyUser(&authInput)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	token, err := services.GenerateJWT(verifiedUser.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to generate token"})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
 func SignUp(c *gin.Context) {
-	var newUser models.User
-	if err := c.ShouldBindBodyWithJSON(&newUser); err != nil {
+	var authInput models.AuthInput
+	if err := c.ShouldBindBodyWithJSON(&authInput); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := services.CreateUser(&newUser); err != nil {
+	if err := services.CreateUser(&authInput); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -41,15 +54,11 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
-	user, err := services.FetchUser(id)
+	user, err := services.FetchUserByID(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"id":        user.ID,
-		"username":  user.Username,
-		"createdAt": user.CreatedAt,
-	})
+	c.JSON(http.StatusOK, user)
 }

@@ -16,6 +16,8 @@
 
 `go get github.com/githubnemo/CompileDaemon@latest`
 
+`go get go get github.com/golang-jwt/jwt/v5@v5.2.1`
+
 
 
 * Run server with hot reload
