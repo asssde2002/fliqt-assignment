@@ -6,7 +6,7 @@ import (
 
 	"backend/internal/config"
 	"backend/internal/db"
-	"backend/internal/handlers"
+	"backend/internal/routes"
 )
 
 func main() {
@@ -16,7 +16,6 @@ func main() {
 
 	router := gin.Default()
 	router.Use(cors.Default())
-	router.POST("auth/signup", handlers.SignUp)
-	router.GET("user/:id", handlers.GetUser)
+	routes.RegisterUserRoutes(router)
 	router.Run(":8080")
 }

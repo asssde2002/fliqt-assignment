@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"backend/internal/db"
 	"backend/internal/models"
 	"backend/internal/services"
 	"net/http"
@@ -11,7 +10,11 @@ import (
 )
 
 func Login(c *gin.Context) {
-
+	var newUser models.User
+	if err := c.ShouldBindBodyWithJSON(&newUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 }
 
 func SignUp(c *gin.Context) {
@@ -32,13 +35,13 @@ func SignUp(c *gin.Context) {
 }
 
 func GetUser(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
 	}
 
-	user, err := fetchUser(id)
+	user, err := services.FetchUser(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -49,13 +52,4 @@ func GetUser(c *gin.Context) {
 		"username":  user.Username,
 		"createdAt": user.CreatedAt,
 	})
-}
-
-func fetchUser(id int) (*models.User, error) {
-	var user models.User
-	err := db.DB.Where("id = ?", id).First(&user).Error
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
 }

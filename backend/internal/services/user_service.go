@@ -26,3 +26,12 @@ func CreateUser(newUser *models.User) error {
 
 	return nil
 }
+
+func FetchUser(id int64) (*models.User, error) {
+	var user models.User
+	err := db.DB.Where("id = ?", id).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
