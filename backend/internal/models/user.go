@@ -12,14 +12,15 @@ type User struct {
 	Username  string    `json:"username" binding:"required" gorm:"notNull;uniqueIndex;size:255"`
 	Password  string    `json:"-" binding:"required" gorm:"notNull"`
 	CreatedAt time.Time `json:"createdAt" gorm:"notNull"`
+	Roles     []Role    `json:"roles" gorm:"many2many:user_roles"`
 }
 
-func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
+func (user *User) BeforeCreate(db *gorm.DB) (err error) {
 	user.CreatedAt = time.Now().UTC()
 	return
 }
 
-func (user *User) AfterFind(tx *gorm.DB) (err error) {
+func (user *User) AfterFind(db *gorm.DB) (err error) {
 	timezone := os.Getenv("TIMEZONE")
 	userLocation, _ := time.LoadLocation(timezone)
 	user.CreatedAt = user.CreatedAt.In(userLocation)
