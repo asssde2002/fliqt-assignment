@@ -4,6 +4,8 @@ import (
 	"backend/internal/db"
 	"backend/internal/models"
 	"fmt"
+
+	"gorm.io/gorm/clause"
 )
 
 func GetAllRolesMap() (map[models.RoleName]int64, error) {
@@ -60,7 +62,7 @@ func PutUserRoles(userID int64, roles []models.RoleName) error {
 		return fmt.Errorf("failed to remove existing roles for user %d: %v", userID, err)
 	}
 
-	var newRoles []models.Role
+	var newUserRoles []models.UserRole
 	for _, roleName := range roles {
 		roleID, exists := roleMap[roleName]
 		if !exists {
@@ -68,10 +70,10 @@ func PutUserRoles(userID int64, roles []models.RoleName) error {
 			return fmt.Errorf("role %s does not exist", roleName)
 		}
 
-		newRoles = append(newRoles, models.Role{ID: roleID})
+		newUserRoles = append(newUserRoles, models.UserRole{UserID: userID, RoleID: roleID})
 	}
 
-	if err := tx.Model(&models.User{ID: userID}).Association("Roles").Append(newRoles); err != nil {
+	if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&newUserRoles).Error; err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to add roles for user %d: %v", userID, err)
 	}

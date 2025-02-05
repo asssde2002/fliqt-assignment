@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"backend/internal/db"
 	"backend/internal/models"
 	"backend/internal/services"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -111,6 +113,12 @@ func PutUserRoles(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "roles field must contain only valid roles (admin, staff)"})
 			return
 		}
+	}
+
+	var user models.User
+	if err := db.DB.First(&user, userID).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("user with ID %d does not exist", userID)})
+		return
 	}
 
 	if err := services.PutUserRoles(userID, req.Roles); err != nil {
