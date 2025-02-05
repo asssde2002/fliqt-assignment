@@ -106,6 +106,13 @@ func PutUserRoles(c *gin.Context) {
 		return
 	}
 
+	for _, role := range req.Roles {
+		if !role.Valid() {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "roles field must contain only valid roles (admin, staff)"})
+			return
+		}
+	}
+
 	if err := services.PutUserRoles(userID, req.Roles); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update roles"})
 		return
