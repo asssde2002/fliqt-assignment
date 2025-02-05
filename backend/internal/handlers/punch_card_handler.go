@@ -1,8 +1,8 @@
 package handlers
 
 import (
+	"backend/internal/models"
 	"backend/internal/services"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -31,7 +31,6 @@ func ClockOut(c *gin.Context) {
 	userID := c.MustGet("user_id").(int64)
 	today := time.Now().UTC().Format("2006-01-02")
 	punchCard, exists := services.CheckPunchCardExist(today, userID)
-	fmt.Println(punchCard, exists)
 	if !exists || punchCard.ClockOut.Valid {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "user needs to clock in for today first or already clocked out"})
 		return
@@ -46,5 +45,29 @@ func ClockOut(c *gin.Context) {
 }
 
 func GetPunchCard(c *gin.Context) {
+	userID := c.MustGet("user_id").(int64)
+	punchCards, err := services.GetPunchCard(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get user's punch cards"})
+		return
+	}
 
+	var responses []models.PunchCardResponse
+	for _, pc := range punchCards {
+		var clockIn, clockOut *time.Time
+		if pc.ClockIn.Valid {
+			clockIn = &pc.ClockIn.Time
+		}
+		if pc.ClockOut.Valid {
+			clockOut = &pc.ClockOut.Time
+		}
+		pcr := models.PunchCardResponse{
+			ClockIn:   clockIn,
+			ClockOut:  clockOut,
+			CreatedAt: pc.CreatedAt,
+		}
+		responses = append(responses, pcr)
+	}
+	print(responses)
+	c.JSON(http.StatusOK, responses)
 }

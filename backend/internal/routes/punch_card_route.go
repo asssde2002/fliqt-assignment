@@ -12,4 +12,5 @@ func RegisterPunchCardRoutes(router *gin.Engine) {
 	privateRoutes.Use(middlewares.AuthenticationMiddleware())
 	privateRoutes.POST("/in", handlers.ClockIn)
 	privateRoutes.POST("/out", handlers.ClockOut)
+	privateRoutes.GET("", handlers.GetPunchCard)
 }

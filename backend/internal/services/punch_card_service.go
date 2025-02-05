@@ -32,6 +32,10 @@ func UpdatePunchCard(punchCardID int64) error {
 	return nil
 }
 
-func GetPunchCard() {
-
+func GetPunchCard(userID int64) ([]models.PunchCard, error) {
+	var punchCards []models.PunchCard
+	if err := db.DB.Where("user_id = ?", userID).Order("created_at DESC").Find(&punchCards).Error; err != nil {
+		return nil, err
+	}
+	return punchCards, nil
 }
