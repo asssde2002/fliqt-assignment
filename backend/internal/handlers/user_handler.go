@@ -52,12 +52,13 @@ func SignUp(c *gin.Context) {
 func GetUser(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
 		return
 	}
 
-	if user_id, exists := c.Get("user_id"); !exists || user_id != id {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+	userID := c.MustGet("user_id").(int64)
+	if userID != id {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
 		return
 	}
 
@@ -73,30 +74,19 @@ func GetUser(c *gin.Context) {
 func PutUserRoles(c *gin.Context) {
 	userID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
 		return
 	}
 
-	reqUserID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-		return
-	}
-
-	currUserID, ok := reqUserID.(int64)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user ID type"})
-		return
-	}
-
+	currUserID := c.MustGet("user_id").(int64)
 	currUserRoles, err := services.GetRoleByUserID(currUserID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
 		return
 	}
 
 	if !containsRole(currUserRoles, models.Admin) {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only admin can update roles"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "only admin can update roles"})
 		return
 	}
 
@@ -126,7 +116,7 @@ func PutUserRoles(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User roles updated successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "user roles updated successfully"})
 }
 
 func containsRole(roles []models.Role, target models.RoleName) bool {

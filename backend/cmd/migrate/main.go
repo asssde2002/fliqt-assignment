@@ -25,6 +25,6 @@ func main() {
 	config.LoadConfig()
 	db.InitDB()
 	defer db.CloseDB()
-	db.DB.AutoMigrate(&models.User{}, &models.Role{}, &models.UserRole{})
+	db.DB.AutoMigrate(&models.User{}, &models.Role{}, &models.UserRole{}, &models.PunchCard{})
 	ensureRolesExist()
 }

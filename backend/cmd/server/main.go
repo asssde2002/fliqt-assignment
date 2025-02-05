@@ -17,5 +17,6 @@ func main() {
 	router := gin.Default()
 	router.Use(cors.Default())
 	routes.RegisterUserRoutes(router)
+	routes.RegisterPunchCardRoutes(router)
 	router.Run(":8080")
 }
