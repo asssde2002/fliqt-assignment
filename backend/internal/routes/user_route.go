@@ -15,4 +15,5 @@ func RegisterUserRoutes(router *gin.Engine) {
 	privateRoutes := router.Group("user")
 	privateRoutes.Use(middlewares.AuthenticationMiddleware())
 	privateRoutes.GET("/:id", handlers.GetUser)
+	privateRoutes.PUT("/:id/roles", handlers.PutUserRoles)
 }

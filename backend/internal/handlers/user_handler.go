@@ -67,3 +67,58 @@ func GetUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, user)
 }
+
+func PutUserRoles(c *gin.Context) {
+	userID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	reqUserID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	currUserID, ok := reqUserID.(int64)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user ID type"})
+		return
+	}
+
+	currUserRoles, err := services.GetRoleByUserID(currUserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	if !containsRole(currUserRoles, models.Admin) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only admin can update roles"})
+		return
+	}
+
+	var req struct {
+		Roles []models.RoleName `json:"roles" binding:"required"`
+	}
+	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "roles field is necessary"})
+		return
+	}
+
+	if err := services.PutUserRoles(userID, req.Roles); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update roles"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User roles updated successfully"})
+}
+
+func containsRole(roles []models.Role, target models.RoleName) bool {
+	for _, role := range roles {
+		if role.Name == target {
+			return true
+		}
+	}
+	return false
+}

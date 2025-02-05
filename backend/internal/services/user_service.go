@@ -18,7 +18,7 @@ func CreateUser(authInput *models.AuthInput) error {
 		return fmt.Errorf("failed to create hash password: %v", err)
 	}
 
-	staffRole, err := GetRole(models.Staff)
+	staffRole, err := GetRoleByRoleName(models.Staff)
 	if err != nil {
 		return fmt.Errorf("cannot get staff role instance")
 	}
