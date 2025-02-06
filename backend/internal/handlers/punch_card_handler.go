@@ -68,6 +68,6 @@ func GetPunchCard(c *gin.Context) {
 		}
 		responses = append(responses, pcr)
 	}
-	print(responses)
+
 	c.JSON(http.StatusOK, responses)
 }

@@ -68,7 +68,19 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	roleNames := make([]models.RoleName, len(user.Roles))
+	for i, role := range user.Roles {
+		roleNames[i] = role.Name
+	}
+	userResponse := models.UserResponse{
+		ID:        user.ID,
+		Username:  user.Username,
+		CreatedAt: user.CreatedAt,
+		IsActive:  user.IsActive,
+		Roles:     roleNames,
+	}
+
+	c.JSON(http.StatusOK, userResponse)
 }
 
 func PutUserRoles(c *gin.Context) {

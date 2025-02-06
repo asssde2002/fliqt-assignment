@@ -38,7 +38,12 @@ func CreateUser(authInput *models.AuthInput) error {
 
 func FetchUserByID(id int64) (*models.User, error) {
 	var user models.User
-	err := db.DB.Where("id = ?", id).First(&user).Error
+	err := db.DB.
+		Joins("LEFT JOIN user_roles ON user_roles.user_id = users.id").
+		Joins("LEFT JOIN roles ON user_roles.role_id = roles.id").
+		Where("users.id = ?", id).
+		Preload("Roles").
+		First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -62,6 +67,10 @@ func VerifyUser(authInput *models.AuthInput) (*models.User, error) {
 
 	if err := bcrypt.CompareHashAndPassword([]byte(existingUser.Password), []byte(authInput.Password)); err != nil {
 		return nil, fmt.Errorf("failed to get hash password: %v", err)
+	}
+
+	if !existingUser.IsActive {
+		return nil, fmt.Errorf("user is not acitve: %v", err)
 	}
 
 	return existingUser, nil
