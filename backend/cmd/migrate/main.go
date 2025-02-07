@@ -1,7 +1,6 @@
 package main
 
 import (
-	"backend/internal/config"
 	"backend/internal/db"
 	"backend/internal/models"
 	"log"
@@ -22,7 +21,7 @@ func ensureRolesExist() {
 }
 
 func main() {
-	config.LoadConfig()
+	// config.LoadConfig()
 	db.InitDB()
 	defer db.CloseDB()
 	db.DB.AutoMigrate(&models.User{}, &models.Role{}, &models.UserRole{}, &models.PunchCard{})

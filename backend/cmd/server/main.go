@@ -4,13 +4,12 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
-	"backend/internal/config"
 	"backend/internal/db"
 	"backend/internal/routes"
 )
 
 func main() {
-	config.LoadConfig()
+	// config.LoadConfig()
 	db.InitDB()
 	defer db.CloseDB()
 
