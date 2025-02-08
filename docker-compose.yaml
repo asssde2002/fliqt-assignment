@@ -17,9 +17,11 @@ services:
     working_dir: /app
     command: bash /app/run_web.sh
     env_file:
-      - ./backend/.env
+      - ./backend/.env_dev
     ports:
       - "8080:8080"
+    depends_on:
+      - db
 
 volumes:
   db_data: {}
