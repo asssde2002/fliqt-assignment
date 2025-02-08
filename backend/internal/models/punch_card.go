@@ -20,8 +20,12 @@ type PunchCard struct {
 
 func (pc *PunchCard) BeforeCreate(db *gorm.DB) (err error) {
 	currTime := time.Now().UTC()
-	pc.CreatedAt = currTime
-	pc.ClockIn = sql.NullTime{Time: currTime, Valid: true}
+	if pc.CreatedAt.IsZero() {
+		pc.CreatedAt = currTime
+	}
+	if !pc.ClockIn.Valid {
+		pc.ClockIn = sql.NullTime{Time: currTime, Valid: true}
+	}
 	return
 }
 
