@@ -1,6 +1,6 @@
 DOCKER_COMPOSE_FILE=docker-compose.yaml
 
-.PHONY: all build stop deploy
+.PHONY: all build stop deploy test
 
 all: build deploy
 
@@ -15,3 +15,6 @@ deploy:
 stop:
 	@echo "Stopping..."
 	@docker-compose -f $(DOCKER_COMPOSE_FILE) down -v > /dev/null 2>&1
+
+test:
+	@cd backend && go test ./internal/handlers -v
