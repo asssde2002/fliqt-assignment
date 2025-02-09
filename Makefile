@@ -5,10 +5,13 @@ DOCKER_COMPOSE_FILE=docker-compose.yaml
 all: build deploy
 
 build:
-	docker-compose -f $(DOCKER_COMPOSE_FILE) build
+	@echo "Building..."
+	@docker-compose -f $(DOCKER_COMPOSE_FILE) build > /dev/null 2>&1
 
 deploy:
-	docker-compose -f $(DOCKER_COMPOSE_FILE) up -d
+	@echo "Starting..."
+	@docker-compose -f $(DOCKER_COMPOSE_FILE) up -d > /dev/null 2>&1
 
 stop:
-	docker-compose -f $(DOCKER_COMPOSE_FILE) down -v
+	@echo "Stopping..."
+	@docker-compose -f $(DOCKER_COMPOSE_FILE) down -v > /dev/null 2>&1

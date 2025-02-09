@@ -10,6 +10,7 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+      - ./backend/scripts/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh:cached
 
   backend:
     image: fliqt-backend-image
@@ -17,7 +18,7 @@ services:
     working_dir: /app
     command: bash /app/run_web.sh
     env_file:
-      - ./backend/.env_dev
+      - ./backend/.env.dev
     ports:
       - "8080:8080"
     depends_on:
