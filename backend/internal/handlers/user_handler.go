@@ -58,7 +58,7 @@ func GetUser(c *gin.Context) {
 
 	userID := c.MustGet("user_id").(int64)
 	if userID != id {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "invalid user ID"})
 		return
 	}
 

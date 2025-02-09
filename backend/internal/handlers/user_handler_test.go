@@ -2,114 +2,125 @@ package handlers_test
 
 import (
 	"backend/internal/db"
-	"backend/internal/handlers"
 	"backend/internal/models"
-	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 )
 
-func getMockDB() (sqlmock.Sqlmock, func(), error) {
-	dbMock, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	gormDB, err := gorm.Open(mysql.New(mysql.Config{
-		Conn:                      dbMock,
-		SkipInitializeWithVersion: true,
-	}), &gorm.Config{})
-	if err != nil {
-		return nil, nil, err
-	}
-
-	originalDB := db.DB
-	db.DB = gormDB
-
-	restoreDB := func() {
-		db.DB = originalDB
-		sqlDB, _ := gormDB.DB()
-		sqlDB.Close()
-	}
-
-	return mock, restoreDB, nil
-}
-
-func setupRolesMock(mock sqlmock.Sqlmock) {
-	mock.ExpectQuery(`SELECT (.+) FROM roles WHERE name = 'staff'`).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).AddRow(2, "staff"))
-}
-
 func TestLogin(t *testing.T) {
-	// mock, restoreDB, err := getMockDB()
-	// if err != nil {
-	// 	t.Fatalf("failed to create mock db: %v", err)
-	// }
-	// defer restoreDB()
+	setup()
+	username := "testuser"
+	password := "testpassword"
+	authInput := models.AuthInput{Username: "testuser", Password: "testpassword"}
 
-	// gin.SetMode(gin.TestMode)
-	// w := httptest.NewRecorder()
-	// c, _ := gin.CreateTestContext(w)
+	user := createUser(authInput, false)
 
-	// authInput := models.AuthInput{
-	// 	Username: "testuser",
-	// 	Password: "testpassword",
-	// }
-	// body, _ := json.Marshal(authInput)
-	// c.Request = httptest.NewRequest(http.MethodPost, "/auth/signup", bytes.NewReader(body))
-	// c.Request.Header.Set("Content-Type", "application/json")
-	// handlers.SignUp(c)
+	err := db.DB.Where("username = ?", user.Username).First(&user).Error
+	assert.NoError(t, err, "user should exist in the database")
 
-	// assert.Equal(t, http.StatusCreated, w.Code)
-	// assert.Contains(t, w.Body.String(), "user created successfully")
+	writer := makeRequest("POST", "/auth/login", models.AuthInput{Username: username, Password: password}, nil)
+	assert.Equal(t, http.StatusOK, writer.Code)
 
-	// if err := mock.ExpectationsWereMet(); err != nil {
-	// 	t.Errorf("未滿足的 SQL mock 條件: %v", err)
-	// }
+	var response map[string]string
+	json.Unmarshal(writer.Body.Bytes(), &response)
+	assert.NotEmpty(t, response["token"], "Token should not be empty")
 }
 
 func TestSignUp(t *testing.T) {
-	mock, restoreDB, err := getMockDB()
-	if err != nil {
-		t.Fatalf("failed to create mock db: %v", err)
-	}
-	defer restoreDB()
-
-	setupRolesMock(mock)
-
-	gin.SetMode(gin.TestMode)
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-
-	authInput := models.AuthInput{
+	setup()
+	newUser := models.AuthInput{
 		Username: "testuser",
 		Password: "testpassword",
 	}
-	body, _ := json.Marshal(authInput)
-	c.Request = httptest.NewRequest(http.MethodPost, "/auth/signup", bytes.NewReader(body))
-	c.Request.Header.Set("Content-Type", "application/json")
-	handlers.SignUp(c)
 
-	assert.Equal(t, http.StatusCreated, w.Code)
-	assert.Contains(t, w.Body.String(), "user created successfully")
+	var user models.User
+	err := db.DB.Where("username = ?", newUser.Username).First(&user).Error
+	assert.Error(t, err, "user should not exist in the database")
 
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("未滿足的 SQL mock 條件: %v", err)
-	}
+	writer := makeRequest("POST", "/auth/signup", newUser, nil)
+	assert.Equal(t, http.StatusCreated, writer.Code)
+
+	var response map[string]string
+	json.Unmarshal(writer.Body.Bytes(), &response)
+	assert.Equal(t, response["message"], "user created successfully")
+
+	err = db.DB.Where("username = ?", newUser.Username).First(&user).Error
+	assert.NoError(t, err, "user should exist in the database")
+	assert.Equal(t, newUser.Username, user.Username, "stored username should match")
 }
 
 func TestGetUser(t *testing.T) {
+	setup()
+	authInput := models.AuthInput{Username: "testuser", Password: "testpassword"}
+	user1 := createUser(authInput, true)
 
+	writer := makeRequest("GET", fmt.Sprintf("/user/%d", user1.ID), nil, &authInput)
+	assert.Equal(t, http.StatusOK, writer.Code)
+	var response models.UserResponse
+	json.Unmarshal(writer.Body.Bytes(), &response)
+	assert.Equal(t, response.ID, user1.ID)
+	assert.Equal(t, response.Username, user1.Username)
+	assert.Equal(t, response.IsActive, true)
+	assert.Equal(t, response.Roles, []models.RoleName{models.Admin, models.Staff})
+
+	authInput2 := models.AuthInput{Username: "testuser2", Password: "testpassword2"}
+	user2 := createUser(authInput2, false)
+
+	writer2 := makeRequest("GET", fmt.Sprintf("/user/%d", user1.ID), nil, &authInput2)
+	assert.Equal(t, http.StatusForbidden, writer2.Code)
+
+	writer3 := makeRequest("GET", fmt.Sprintf("/user/%d", user2.ID), nil, &authInput2)
+	assert.Equal(t, http.StatusOK, writer3.Code)
+	var response2 models.UserResponse
+	json.Unmarshal(writer3.Body.Bytes(), &response2)
+	assert.Equal(t, response2.ID, user2.ID)
+	assert.Equal(t, response2.Username, user2.Username)
+	assert.Equal(t, response2.IsActive, true)
+	assert.Equal(t, response2.Roles, []models.RoleName{models.Staff})
 }
 
 func TestPutUserRoles(t *testing.T) {
+	setup()
+	authInput := models.AuthInput{Username: "testuser", Password: "testpassword"}
+	user1 := createUser(authInput, true)
 
+	authInput2 := models.AuthInput{Username: "testuser2", Password: "testpassword2"}
+	user2 := createUser(authInput2, false)
+
+	roles := struct {
+		Roles []models.RoleName `json:"roles" binding:"required"`
+	}{
+		Roles: []models.RoleName{models.Admin, models.Staff},
+	}
+	writer := makeRequest("PUT", fmt.Sprintf("/user/%d/roles", user1.ID), roles, &authInput2)
+	assert.Equal(t, http.StatusForbidden, writer.Code)
+	var response map[string]string
+	json.Unmarshal(writer.Body.Bytes(), &response)
+	assert.Equal(t, response["error"], "only admin can update roles")
+
+	db.DB.Model(&user2).Preload("Roles").First(&user2)
+	roleNames := []models.RoleName{}
+	for _, role := range user2.Roles {
+		roleNames = append(roleNames, role.Name)
+	}
+	assert.NotContains(t, roleNames, models.Admin)
+	assert.Contains(t, roleNames, models.Staff)
+
+	writer2 := makeRequest("PUT", fmt.Sprintf("/user/%d/roles", user2.ID), roles, &authInput)
+	assert.Equal(t, http.StatusForbidden, writer.Code)
+	var response2 map[string]string
+	json.Unmarshal(writer2.Body.Bytes(), &response2)
+	assert.Equal(t, response2["message"], "user roles updated successfully")
+
+	db.DB.Model(&user2).Preload("Roles").First(&user2)
+	roleNames = []models.RoleName{}
+	for _, role := range user2.Roles {
+		roleNames = append(roleNames, role.Name)
+	}
+	assert.Contains(t, roleNames, models.Admin)
+	assert.Contains(t, roleNames, models.Staff)
 }
