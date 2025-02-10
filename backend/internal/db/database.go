@@ -33,11 +33,11 @@ func InitDB() {
 func CloseDB() {
 	mysqlDB, err := DB.DB()
 	if err != nil {
-		log.Println("Failed to get database instance:", err)
+		log.Fatal("Failed to get database instance:", err)
 		return
 	}
 
 	if err := mysqlDB.Close(); err != nil {
-		log.Println("Failed to close database:", err)
+		log.Fatal("Failed to close database:", err)
 	}
 }

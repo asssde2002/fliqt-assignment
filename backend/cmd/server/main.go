@@ -11,6 +11,8 @@ import (
 func main() {
 	// config.LoadConfig()
 	db.InitDB()
+	db.InitRedis()
+	defer db.CloseRedis()
 	defer db.CloseDB()
 
 	router := gin.Default()
