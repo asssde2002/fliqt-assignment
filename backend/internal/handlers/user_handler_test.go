@@ -13,8 +13,6 @@ import (
 
 func TestLogin(t *testing.T) {
 	setup()
-	username := "testuser"
-	password := "testpassword"
 	authInput := models.AuthInput{Username: "testuser", Password: "testpassword"}
 
 	user := createUser(authInput, false)
@@ -22,7 +20,7 @@ func TestLogin(t *testing.T) {
 	err := db.DB.Where("username = ?", user.Username).First(&user).Error
 	assert.NoError(t, err, "user should exist in the database")
 
-	writer := makeRequest("POST", "/auth/login", models.AuthInput{Username: username, Password: password}, nil)
+	writer := makeRequest("POST", "/auth/login", authInput, nil)
 	assert.Equal(t, http.StatusOK, writer.Code)
 
 	var response map[string]string

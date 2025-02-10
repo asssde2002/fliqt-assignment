@@ -23,7 +23,7 @@ func ClockIn(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "user clocked in for today successfully"})
+	c.JSON(http.StatusCreated, gin.H{"message": "user clocked in for today successfully"})
 
 }
 
@@ -40,7 +40,7 @@ func ClockOut(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "user clocked out for today successfully"})
+	c.JSON(http.StatusCreated, gin.H{"message": "user clocked out for today successfully"})
 
 }
 
