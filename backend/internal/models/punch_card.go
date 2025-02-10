@@ -2,7 +2,6 @@ package models
 
 import (
 	"database/sql"
-	"os"
 	"time"
 
 	"gorm.io/gorm"
@@ -13,7 +12,7 @@ type PunchCard struct {
 	UserID    int64        `json:"user_id" gorm:"notNull;index"`
 	ClockIn   sql.NullTime `json:"clock_in"`
 	ClockOut  sql.NullTime `json:"clock_out"`
-	CreatedAt time.Time    `json:"createdAt" gorm:"notNull"`
+	CreatedAt time.Time    `json:"created_at" gorm:"notNull"`
 
 	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
@@ -30,14 +29,12 @@ func (pc *PunchCard) BeforeCreate(db *gorm.DB) (err error) {
 }
 
 func (pc *PunchCard) AfterFind(db *gorm.DB) (err error) {
-	timezone := os.Getenv("TIMEZONE")
-	userLocation, _ := time.LoadLocation(timezone)
-	pc.CreatedAt = pc.CreatedAt.In(userLocation)
+	pc.CreatedAt = pc.CreatedAt.Local()
 	if pc.ClockIn.Valid {
-		pc.ClockIn.Time = pc.ClockIn.Time.In(userLocation)
+		pc.ClockIn.Time = pc.ClockIn.Time.Local()
 	}
 	if pc.ClockOut.Valid {
-		pc.ClockOut.Time = pc.ClockOut.Time.In(userLocation)
+		pc.ClockOut.Time = pc.ClockOut.Time.Local()
 	}
 	return
 }

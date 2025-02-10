@@ -3,22 +3,56 @@ package services
 import (
 	"backend/internal/db"
 	"backend/internal/models"
+	"encoding/json"
 	"fmt"
+	"time"
 
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm/clause"
 )
 
 func GetAllRolesMap() (map[models.RoleName]int64, error) {
-	var roles []models.Role
-	if err := db.DB.Find(&roles).Error; err != nil {
-		return nil, err
-	}
-
 	roleMap := make(map[models.RoleName]int64)
-	for _, role := range roles {
-		roleMap[role.Name] = role.ID
+	roleMapJSON := make(map[string]int64)
+	roleMapVal, err := db.RDB.Get(db.CTX, "rolemap").Result()
+	if err == redis.Nil {
+		var roles []models.Role
+		if err := db.DB.Find(&roles).Error; err != nil {
+			return nil, err
+		}
+
+		for _, role := range roles {
+			roleMapJSON[string(role.Name)] = role.ID
+		}
+
+		roleMapJSONStr, err := json.Marshal(roleMapJSON)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := db.RDB.Set(db.CTX, "rolemap", roleMapJSONStr, 3600*time.Second).Err(); err != nil {
+			return nil, err
+		}
+
+		roleMap = make(map[models.RoleName]int64)
+		for k, v := range roleMapJSON {
+			roleMap[models.RoleName(k)] = v
+		}
+
+		return roleMap, nil
+	} else {
+		fmt.Println("get key")
+		err = json.Unmarshal([]byte(roleMapVal), &roleMapJSON)
+		if err != nil {
+			return nil, err
+		}
+
+		for k, v := range roleMapJSON {
+			roleMap[models.RoleName(k)] = v
+		}
+
+		return roleMap, nil
 	}
-	return roleMap, nil
 }
 
 func GetRoleByRoleName(rolename models.RoleName) (*models.Role, error) {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"backend/internal/config"
 	"backend/internal/db"
 	"backend/internal/models"
 	"database/sql"
@@ -93,6 +94,8 @@ func ensureUserPunchCard(users []models.User) {
 
 func main() {
 	// config.LoadConfig()
+	config.LoadTimeZone()
+
 	db.InitDB()
 	defer db.CloseDB()
 	db.DB.AutoMigrate(&models.User{}, &models.Role{}, &models.UserRole{}, &models.PunchCard{})

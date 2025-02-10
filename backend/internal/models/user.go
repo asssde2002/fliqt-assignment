@@ -1,7 +1,6 @@
 package models
 
 import (
-	"os"
 	"time"
 
 	"gorm.io/gorm"
@@ -23,9 +22,7 @@ func (user *User) BeforeCreate(db *gorm.DB) (err error) {
 }
 
 func (user *User) AfterFind(db *gorm.DB) (err error) {
-	timezone := os.Getenv("TIMEZONE")
-	userLocation, _ := time.LoadLocation(timezone)
-	user.CreatedAt = user.CreatedAt.In(userLocation)
+	user.CreatedAt = user.CreatedAt.Local()
 	return
 }
 

@@ -12,5 +12,5 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o db_migrate ./cmd/migrate/main.go
 
 FROM alpine
 WORKDIR /app
-RUN apk add --no-cache ca-certificates bash
+RUN apk add --no-cache ca-certificates bash tzdata
 COPY --from=builder /app/main /app/db_migrate /app/scripts /app/

@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	ctx = context.Background()
+	CTX = context.Background()
 	RDB *redis.Client
 )
 
@@ -19,10 +19,10 @@ func InitRedis() {
 	RDB = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT")),
 		Password: os.Getenv("REDIS_PASSWORD"),
-		DB:       getEnvAsInt(os.Getenv("REDIS_DB"), 0),
+		DB:       getEnvAsInt("REDIS_DB", 0),
 	})
 
-	_, err := RDB.Ping(ctx).Result()
+	_, err := RDB.Ping(CTX).Result()
 	if err != nil {
 		log.Fatal("Failed to connect to redis:", err)
 	}

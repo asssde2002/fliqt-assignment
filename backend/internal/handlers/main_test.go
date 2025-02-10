@@ -24,6 +24,7 @@ var roleMapCache = make(map[models.RoleName]int64)
 func TestMain(m *testing.M) {
 	gin.SetMode(gin.TestMode)
 	config.LoadConfig("../../.env.test")
+	config.LoadTimeZone()
 	exitCode := m.Run()
 	os.Exit(exitCode)
 }
@@ -38,6 +39,7 @@ func router() *gin.Engine {
 
 func setup() {
 	db.InitDB()
+	db.InitRedis()
 	teardown()
 	db.DB.AutoMigrate(&models.User{}, &models.Role{}, &models.UserRole{}, &models.PunchCard{})
 	ensureRolesExist()
@@ -46,6 +48,7 @@ func setup() {
 func teardown() {
 	migrator := db.DB.Migrator()
 	migrator.DropTable(&models.User{}, &models.Role{}, &models.UserRole{}, &models.PunchCard{})
+	db.RDB.FlushDB(db.CTX)
 }
 
 func makeRequest(method, url string, body interface{}, authInput *models.AuthInput) *httptest.ResponseRecorder {
