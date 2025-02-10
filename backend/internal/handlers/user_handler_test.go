@@ -21,7 +21,7 @@ func TestLogin(t *testing.T) {
 	assert.NoError(t, err, "user should exist in the database")
 
 	writer := makeRequest("POST", "/auth/login", authInput, nil)
-	assert.Equal(t, http.StatusOK, writer.Code)
+	assert.Equal(t, http.StatusCreated, writer.Code)
 
 	var response map[string]string
 	json.Unmarshal(writer.Body.Bytes(), &response)

@@ -66,7 +66,7 @@ func ensureUserPunchCard(users []models.User) {
 	startDate := 5
 	for i := 0; i < 3; i++ {
 		userID := users[0].ID
-		createdAt := time.Date(2025, time.February, startDate+i, 12, 0, 0, 0, time.UTC)
+		createdAt := time.Date(2025, time.February, startDate+i, 4, 0, 0, 0, time.UTC)
 		pc := models.PunchCard{
 			UserID:    userID,
 			CreatedAt: createdAt,
@@ -76,7 +76,7 @@ func ensureUserPunchCard(users []models.User) {
 		punchCards = append(punchCards, pc)
 	}
 
-	createdAt := time.Date(2025, time.February, startDate, 12, 0, 0, 0, time.UTC)
+	createdAt := time.Date(2025, time.February, startDate, 4, 0, 0, 0, time.UTC)
 	userID := users[1].ID
 	pc := models.PunchCard{
 		UserID:    userID,
